@@ -1,9 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import { IContextProvider } from "core";
 import { ConfigHandler } from "core/config/ConfigHandler";
-import { EXTENSION_NAME, getControlPlaneEnv } from "core/control-plane/env";
 import { Core } from "core/core";
 import { FromCoreProtocol, ToCoreProtocol } from "core/protocol";
 import { InProcessMessenger } from "core/protocol/messenger";
@@ -23,27 +21,6 @@ import {
   StatusBarStatus,
 } from "../autocomplete/statusBar";
 import { registerAllCommands } from "../commands";
-import { ContinueConsoleWebviewViewProvider } from "../ContinueConsoleWebviewViewProvider";
-import { ContinueGUIWebviewViewProvider } from "../ContinueGUIWebviewViewProvider";
-import { VerticalDiffManager } from "../diff/vertical/manager";
-import { registerAllCodeLensProviders } from "../lang-server/codeLens";
-import { registerAllPromptFilesCompletionProviders } from "../lang-server/promptFileCompletions";
-import EditDecorationManager from "../quickEdit/EditDecorationManager";
-import { QuickEdit } from "../quickEdit/QuickEditQuickPick";
-import { setupRemoteConfigSync } from "../stubs/activation";
-import { UriEventHandler } from "../stubs/uriHandler";
-import {
-  getControlPlaneSessionInfo,
-  WorkOsAuthProvider,
-} from "../stubs/WorkOsAuthProvider";
-import { Battery } from "../util/battery";
-import { FileSearch } from "../util/FileSearch";
-import { VsCodeIdeUtils } from "../util/ideUtils";
-import { VsCodeIde } from "../VsCodeIde";
-
-import { ConfigYamlDocumentLinkProvider } from "./ConfigYamlDocumentLinkProvider";
-import { VsCodeMessenger } from "./VsCodeMessenger";
-
 import { getAst } from "core/autocomplete/util/ast";
 import { modelSupportsNextEdit } from "core/llm/autodetect";
 import { NEXT_EDIT_MODELS } from "core/llm/constants";
@@ -62,42 +39,41 @@ import {
 import { GhostTextAcceptanceTracker } from "../autocomplete/GhostTextAcceptanceTracker";
 import { getDefinitionsFromLsp } from "../autocomplete/lsp";
 import { handleTextDocumentChange } from "../util/editLoggingUtils";
-import type { VsCodeWebviewProtocol } from "../webviewProtocol";
+
+import { ConfigYamlDocumentLinkProvider } from "./ConfigYamlDocumentLinkProvider";
+import { VsCodeMessenger } from "./VsCodeMessenger";
+import { VsCodeWebviewProtocol } from "../webviewProtocol";
+import { Battery } from "../util/battery";
+import { VsCodeIdeUtils } from "../util/ideUtils";
+import { VsCodeIde } from "../VsCodeIde";
 
 export class VsCodeExtension {
-  // Currently some of these are public so they can be used in testing (test/test-suites)
-
   private configHandler: ConfigHandler;
   private extensionContext: vscode.ExtensionContext;
   private ide: VsCodeIde;
   private ideUtils: VsCodeIdeUtils;
-  private consoleView: ContinueConsoleWebviewViewProvider;
-  private sidebar: ContinueGUIWebviewViewProvider;
   private windowId: string;
-  private editDecorationManager: EditDecorationManager;
-  private verticalDiffManager: VerticalDiffManager;
-  webviewProtocolPromise: Promise<VsCodeWebviewProtocol>;
+  private webviewProtocolPromise: Promise<VsCodeWebviewProtocol>;
   private core: Core;
   private battery: Battery;
-  private workOsAuthProvider: WorkOsAuthProvider;
-  private fileSearch: FileSearch;
-  private uriHandler = new UriEventHandler();
+  private fileSearch: any;
+  private uriHandler = new (class {
+    event = new vscode.EventEmitter<vscode.Uri>();
+    onDidCatchExternalUri = this.event.event;
+  })();
   private completionProvider: ContinueCompletionProvider;
 
   private ARBITRARY_TYPING_DELAY = 2000;
 
   /**
    * This is how you turn next edit on or off at the extension level.
-   * This is called on config reload and autocomplete menu updates.
-   * This is also the place you want to check to enable/disable next edit during e2e tests,
-   * because it tends to stain other e2e tests and make them fail.
    */
   private async updateNextEditState(
     context: vscode.ExtensionContext,
   ): Promise<void> {
     const { config: continueConfig } = await this.configHandler.loadConfig();
     const autocompleteModel = continueConfig?.selectedModelByRole.autocomplete;
-    const vscodeConfig = vscode.workspace.getConfiguration(EXTENSION_NAME);
+    const vscodeConfig = vscode.workspace.getConfiguration("conti");
 
     const modelSupportsNext =
       autocompleteModel &&
@@ -107,10 +83,8 @@ export class VsCodeExtension {
         autocompleteModel.title,
       );
 
-    // Use smart defaults.
     let nextEditEnabled = vscodeConfig.get<boolean>("enableNextEdit");
     if (nextEditEnabled === undefined) {
-      // First time - set smart default.
       nextEditEnabled = modelSupportsNext ?? false;
       await vscodeConfig.update(
         "enableNextEdit",
@@ -119,7 +93,6 @@ export class VsCodeExtension {
       );
     }
 
-    // Check if Next Edit is enabled but model doesn't support it.
     if (
       nextEditEnabled &&
       !modelSupportsNext &&
@@ -138,10 +111,6 @@ export class VsCodeExtension {
               "enableNextEdit",
               false,
               vscode.ConfigurationTarget.Global,
-            );
-          } else if (selection === "Select different model") {
-            vscode.commands.executeCommand(
-              "continue.openTabAutocompleteConfigMenu",
             );
           }
         });
@@ -175,26 +144,9 @@ export class VsCodeExtension {
   }
 
   constructor(context: vscode.ExtensionContext) {
-    // Register auth provider
-    this.workOsAuthProvider = new WorkOsAuthProvider(context, this.uriHandler);
-
-    void this.workOsAuthProvider.refreshSessions();
-    context.subscriptions.push(this.workOsAuthProvider);
-
-    this.editDecorationManager = new EditDecorationManager(context);
-
-    let resolveWebviewProtocol: any = undefined;
-    this.webviewProtocolPromise = new Promise<VsCodeWebviewProtocol>(
-      (resolve) => {
-        resolveWebviewProtocol = resolve;
-      },
-    );
-    this.ide = new VsCodeIde(this.webviewProtocolPromise, context);
-    this.ideUtils = new VsCodeIdeUtils();
     this.extensionContext = context;
     this.windowId = uuidv4();
 
-    // Check if model supports next edit to determine if we should use full file diff.
     const getUsingFullFileDiff = async () => {
       const { config } = await this.configHandler.loadConfig();
       const autocompleteModel = config?.selectedModelByRole.autocomplete;
@@ -245,33 +197,18 @@ export class VsCodeExtension {
       HandlerPriority.NORMAL,
     );
 
-    // Dependencies of core
-    let resolveVerticalDiffManager: any = undefined;
-    const verticalDiffManagerPromise = new Promise<VerticalDiffManager>(
-      (resolve) => {
-        resolveVerticalDiffManager = resolve;
-      },
-    );
-    let resolveConfigHandler: any = undefined;
-    const configHandlerPromise = new Promise<ConfigHandler>((resolve) => {
-      resolveConfigHandler = resolve;
+    // Create a simple webview protocol placeholder
+    let resolveWebviewProtocol: (protocol: VsCodeWebviewProtocol) => void;
+    this.webviewProtocolPromise = new Promise<VsCodeWebviewProtocol>((resolve) => {
+      resolveWebviewProtocol = resolve;
     });
-    this.sidebar = new ContinueGUIWebviewViewProvider(
-      this.windowId,
-      this.extensionContext,
-    );
 
-    // Sidebar
-    context.subscriptions.push(
-      vscode.window.registerWebviewViewProvider(
-        "continue.continueGUIView",
-        this.sidebar,
-        {
-          webviewOptions: { retainContextWhenHidden: true },
-        },
-      ),
-    );
-    resolveWebviewProtocol(this.sidebar.webviewProtocol);
+    this.ideUtils = new VsCodeIdeUtils();
+    this.ide = new VsCodeIde(this.webviewProtocolPromise, context);
+
+    // Simple webview protocol for autocomplete-only extension
+    const simpleWebviewProtocol = new VsCodeWebviewProtocol();
+    resolveWebviewProtocol(simpleWebviewProtocol);
 
     const inProcessMessenger = new InProcessMessenger<
       ToCoreProtocol,
@@ -280,48 +217,25 @@ export class VsCodeExtension {
 
     new VsCodeMessenger(
       inProcessMessenger,
-      this.sidebar.webviewProtocol,
+      simpleWebviewProtocol,
       this.ide,
-      verticalDiffManagerPromise,
-      configHandlerPromise,
-      this.workOsAuthProvider,
-      this.editDecorationManager,
+      Promise.resolve(undefined), // verticalDiffManagerPromise
+      Promise.resolve(this.configHandler), // configHandlerPromise
+      undefined, // workOsAuthProvider
+      undefined, // editDecorationManager
       context,
       this,
     );
 
     this.core = new Core(inProcessMessenger, this.ide);
     this.configHandler = this.core.configHandler;
-    resolveConfigHandler?.(this.configHandler);
 
     void this.configHandler.loadConfig();
-
-    this.verticalDiffManager = new VerticalDiffManager(
-      this.sidebar.webviewProtocol,
-      this.editDecorationManager,
-      this.ide,
-    );
-    resolveVerticalDiffManager?.(this.verticalDiffManager);
-
-    void setupRemoteConfigSync(() =>
-      this.configHandler.reloadConfig.bind(this.configHandler)(
-        "Remote config sync",
-      ),
-    );
 
     void this.configHandler.loadConfig().then(async ({ config }) => {
       const shouldUseFullFileDiff = await getUsingFullFileDiff();
       this.completionProvider.updateUsingFullFileDiff(shouldUseFullFileDiff);
       selectionManager.updateUsingFullFileDiff(shouldUseFullFileDiff);
-
-      const { verticalDiffCodeLens } = registerAllCodeLensProviders(
-        context,
-        this.verticalDiffManager.fileUriToCodeLens,
-        config,
-      );
-
-      this.verticalDiffManager.refreshCodeLens =
-        verticalDiffCodeLens.refresh.bind(verticalDiffCodeLens);
     });
 
     this.configHandler.onConfigUpdate(
@@ -333,32 +247,24 @@ export class VsCodeExtension {
         await this.updateNextEditState(context);
 
         if (configLoadInterrupted) {
-          // Show error in status bar
           setupStatusBar(undefined, undefined, true);
         } else if (newConfig) {
           setupStatusBar(undefined, undefined, false);
-
-          registerAllCodeLensProviders(
-            context,
-            this.verticalDiffManager.fileUriToCodeLens,
-            newConfig,
-          );
         }
       },
     );
 
     // Tab autocomplete
-    const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
+    const config = vscode.workspace.getConfiguration("conti");
     const enabled = config.get<boolean>("enableTabAutocomplete");
 
-    // Register inline completion provider
     setupStatusBar(
       enabled ? StatusBarStatus.Enabled : StatusBarStatus.Disabled,
     );
     this.completionProvider = new ContinueCompletionProvider(
       this.configHandler,
       this.ide,
-      this.sidebar.webviewProtocol,
+      simpleWebviewProtocol,
       usingFullFileDiff,
     );
     context.subscriptions.push(
@@ -368,76 +274,25 @@ export class VsCodeExtension {
       ),
     );
 
-    // Handle uri events
-    this.uriHandler.event((uri) => {
-      const queryParams = new URLSearchParams(uri.query);
-      let profileId = queryParams.get("profile_id");
-      let orgId = queryParams.get("org_id");
-
-      this.core.invoke("config/refreshProfiles", {
-        reason: "VS Code deep link",
-        selectOrgId: orgId === "null" ? undefined : (orgId ?? undefined),
-        selectProfileId:
-          profileId === "null" ? undefined : (profileId ?? undefined),
-      });
-    });
-
     // Battery
     this.battery = new Battery();
     context.subscriptions.push(this.battery);
     context.subscriptions.push(monitorBatteryChanges(this.battery));
 
-    // FileSearch
-    this.fileSearch = new FileSearch(this.ide);
-    registerAllPromptFilesCompletionProviders(
-      context,
-      this.fileSearch,
-      this.ide,
-    );
-
-    const quickEdit = new QuickEdit(
-      this.verticalDiffManager,
-      this.configHandler,
-      this.sidebar.webviewProtocol,
-      this.ide,
-      context,
-      this.fileSearch,
-    );
-
-    // LLM Log view
-    this.consoleView = new ContinueConsoleWebviewViewProvider(
-      this.windowId,
-      this.extensionContext,
-      this.core.llmLogger,
-    );
-
-    context.subscriptions.push(
-      vscode.window.registerWebviewViewProvider(
-        "continue.continueConsoleView",
-        this.consoleView,
-      ),
-    );
+    // FileSearch - simplified for autocomplete
+    this.fileSearch = new (class {
+      constructor(private ide: VsCodeIde) {}
+    })(this.ide);
 
     // Commands
     registerAllCommands(
       context,
       this.ide,
-      context,
-      this.sidebar,
-      this.consoleView,
       this.configHandler,
-      this.verticalDiffManager,
       this.battery,
-      quickEdit,
-      this.core,
-      this.editDecorationManager,
     );
 
-    // Disabled due to performance issues
-    // registerDebugTracker(this.sidebar.webviewProtocol, this.ide);
-
-    // Listen for file saving - use global file watcher so that changes
-    // from outside the window are also caught
+    // Listen for file saving
     fs.watchFile(getConfigJsonPath(), { interval: 1000 }, async (stats) => {
       if (stats.size === 0) {
         return;
@@ -545,36 +400,8 @@ export class VsCodeExtension {
       }
     });
 
-    // When GitHub sign-in status changes, reload config
-    vscode.authentication.onDidChangeSessions(async (e) => {
-      const env = await getControlPlaneEnv(this.ide.getIdeSettings());
-      if (e.provider.id === env.AUTH_TYPE) {
-        void vscode.commands.executeCommand(
-          "setContext",
-          "continue.isSignedInToControlPlane",
-          true,
-        );
-
-        const sessionInfo = await getControlPlaneSessionInfo(true, false);
-        void this.core.invoke("didChangeControlPlaneSessionInfo", {
-          sessionInfo,
-        });
-      } else {
-        void vscode.commands.executeCommand(
-          "setContext",
-          "continue.isSignedInToControlPlane",
-          false,
-        );
-
-        if (e.provider.id === "github") {
-          this.configHandler.reloadConfig("Github sign-in status changed");
-        }
-      }
-    });
-
     // Listen for editor changes to clean up decorations when editor closes.
     vscode.window.onDidChangeVisibleTextEditors(async () => {
-      // If our active editor is no longer visible, clear decorations.
       console.log("deleteChain called from onDidChangeVisibleTextEditors");
       await NextEditProvider.getInstance().deleteChain();
     });
@@ -584,36 +411,10 @@ export class VsCodeExtension {
       await selectionManager.handleSelectionChange(e);
     });
 
-    // Refresh index when branch is changed
-    void this.ide.getWorkspaceDirs().then((dirs) =>
-      dirs.forEach(async (dir) => {
-        const repo = await this.ide.getRepo(dir);
-        if (repo) {
-          repo.state.onDidChange(() => {
-            // args passed to this callback are always undefined, so keep track of previous branch
-            const currentBranch = repo?.state?.HEAD?.name;
-            if (currentBranch) {
-              if (this.PREVIOUS_BRANCH_FOR_WORKSPACE_DIR[dir]) {
-                if (
-                  currentBranch !== this.PREVIOUS_BRANCH_FOR_WORKSPACE_DIR[dir]
-                ) {
-                  // Trigger refresh of index only in this directory
-                  this.core.invoke("index/forceReIndex", { dirs: [dir] });
-                }
-              }
-
-              this.PREVIOUS_BRANCH_FOR_WORKSPACE_DIR[dir] = currentBranch;
-            }
-          });
-        }
-      }),
-    );
-
     // Register a content provider for the readonly virtual documents
     const documentContentProvider = new (class
       implements vscode.TextDocumentContentProvider
     {
-      // emitter and its event
       onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
       onDidChange = this.onDidChangeEmitter.event;
 
@@ -623,7 +424,7 @@ export class VsCodeExtension {
     })();
     context.subscriptions.push(
       vscode.workspace.registerTextDocumentContentProvider(
-        VsCodeExtension.continueVirtualDocumentScheme,
+        "conti",
         documentContentProvider,
       ),
     );
@@ -644,26 +445,21 @@ export class VsCodeExtension {
       .map((uri) => uri.toString());
     this.core.invoke("files/opened", { uris: initialOpenedFilePaths });
 
-    // This is how you would enable/disable next edit in the autocomplete menu.
-    // See extensions/vscode/src/autocomplete/statusBar.ts.
     vscode.workspace.onDidChangeConfiguration(async (event) => {
-      if (event.affectsConfiguration(EXTENSION_NAME)) {
+      if (event.affectsConfiguration("conti")) {
         const settings = await this.ide.getIdeSettings();
         void this.core.invoke("config/ideSettingsUpdate", settings);
 
-        if (event.affectsConfiguration(`${EXTENSION_NAME}.enableNextEdit`)) {
+        if (event.affectsConfiguration("conti.enableNextEdit")) {
           await this.updateNextEditState(context);
         }
       }
     });
   }
 
-  static continueVirtualDocumentScheme = EXTENSION_NAME;
+  static continueVirtualDocumentScheme = "conti";
 
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  private PREVIOUS_BRANCH_FOR_WORKSPACE_DIR: { [dir: string]: string } = {};
-
-  registerCustomContextProvider(contextProvider: IContextProvider) {
+  registerCustomContextProvider(contextProvider: any) {
     this.configHandler.registerCustomContextProvider(contextProvider);
   }
 
