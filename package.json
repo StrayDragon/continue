@@ -5,7 +5,8 @@
   "version": "1.0.0",
   "publisher": "Continue",
   "engines": {
-    "vscode": "^1.70.0"
+    "vscode": "^1.70.0",
+    "node": ">=20.19.0"
   },
   "categories": [
     "AI",
@@ -22,7 +23,42 @@
     "completion",
     "fim"
   ],
-  "main": "./out/extension.js",
+  "main": "./extensions/vscode/out/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "node ./scripts/esbuild.js",
+    "compile:watch": "node ./scripts/esbuild.js --watch",
+    "compile:sourcemap": "node ./scripts/esbuild.js --sourcemap",
+    "lint": "eslint extensions/vscode/src --ext ts",
+    "lint:fix": "eslint extensions/vscode/src --ext ts --fix",
+    "format": "prettier --write 'extensions/vscode/src/**/*.{ts,js,json}'",
+    "format:check": "prettier --check 'extensions/vscode/src/**/*.{ts,js,json}'",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "clean": "rm -rf out/ build/ dist/ extensions/vscode/out extensions/vscode/build",
+    "build": "npm run clean && npm run compile",
+    "build:package": "npm run build && cd extensions/vscode && npx vsce package",
+    "dev": "npm run compile:watch",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "@types/vscode": "^1.70.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "esbuild": "^0.19.11",
+    "eslint": "^8.56.0",
+    "husky": "^8.0.3",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.4",
+    "typescript": "^5.5.2",
+    "vsce": "^2.15.0"
+  },
+  "dependencies": {
+    "@continuedev/config-types": "^1.0.14",
+    "zod": "^3.24.2"
+  },
   "contributes": {
     "configuration": {
       "title": "Conti",
@@ -46,6 +82,27 @@
           "type": "string",
           "default": "",
           "description": "API key for the selected model."
+        },
+        "conti.tabModel": {
+          "type": "string",
+          "default": "gpt-4",
+          "description": "Model specifically for tab autocomplete (overrides conti.model if set)."
+        },
+        "conti.tabModelProvider": {
+          "type": "string",
+          "enum": ["openai", "anthropic", "ollama", "azure-openai"],
+          "default": "openai",
+          "description": "Provider for tab autocomplete model."
+        },
+        "conti.tabApiBase": {
+          "type": "string",
+          "default": "",
+          "description": "Custom API base URL for tab model provider."
+        },
+        "conti.enableAdvancedConfig": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable advanced configuration options (full YAML config)."
         }
       }
     },
@@ -68,6 +125,11 @@
         "category": "Conti",
         "title": "Settings",
         "icon": "$(gear)"
+      },
+      {
+        "command": "conti.showStatus",
+        "category": "Conti",
+        "title": "Show Status"
       }
     ],
     "keybindings": [

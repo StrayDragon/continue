@@ -11,6 +11,7 @@ import {
 } from "./autocomplete/statusBar";
 import { Battery } from "./util/battery";
 import { VsCodeIde } from "./VsCodeIde";
+import { showStatusCommand } from "./commands/showStatus";
 
 type TelemetryCaptureParams = Parameters<typeof Telemetry.capture>;
 
@@ -28,10 +29,12 @@ const getCommandsMap: (
   ide: VsCodeIde,
   configHandler: ConfigHandler,
   battery: Battery,
+  context: vscode.ExtensionContext,
 ) => { [command: string]: (...args: any) => any } = (
   ide,
   configHandler,
   battery,
+  context,
 ) => {
   return {
     "conti.toggleTabAutocompleteEnabled": () => {
@@ -111,6 +114,11 @@ const getCommandsMap: (
     "conti.openConfigPage": () => {
       vscode.commands.executeCommand("workbench.action.openSettings", "conti");
     },
+
+    "conti.showStatus": () => {
+      captureCommandTelemetry("showStatus");
+      showStatusCommand(configHandler, context);
+    },
   };
 };
 
@@ -121,7 +129,7 @@ export function registerAllCommands(
   battery: Battery,
 ) {
   for (const [command, callback] of Object.entries(
-    getCommandsMap(ide, configHandler, battery),
+    getCommandsMap(ide, configHandler, battery, context),
   )) {
     context.subscriptions.push(
       vscode.commands.registerCommand(command, callback),

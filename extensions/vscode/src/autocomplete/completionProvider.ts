@@ -12,6 +12,7 @@ import * as vscode from "vscode";
 import { handleLLMError } from "../util/errorHandling";
 import { VsCodeIde } from "../VsCodeIde";
 import { VsCodeWebviewProtocol } from "../webviewProtocol";
+import { ContiConfigManager } from "../config/ContiConfigManager";
 
 import { checkFim } from "core/nextEdit/diff/diff";
 import { NextEditLoggingService } from "core/nextEdit/NextEditLoggingService";
@@ -88,12 +89,21 @@ export class ContinueCompletionProvider
     this.usingFullFileDiff = usingFullFileDiff;
     this.recentlyEditedTracker = new RecentlyEditedTracker(ide.ideUtils);
 
+    // Initialize simplified configuration manager
+    const contiConfigManager = ContiConfigManager.getInstance(configHandler);
+
     async function getAutocompleteModel() {
-      const { config } = await configHandler.loadConfig();
-      if (!config) {
-        return;
+      try {
+        // Use simplified configuration if available
+        return await contiConfigManager.getTabModel();
+      } catch (error) {
+        // Fallback to full config system
+        const { config } = await configHandler.loadConfig();
+        if (!config) {
+          return;
+        }
+        return config.selectedModelByRole.autocomplete ?? undefined;
       }
-      return config.selectedModelByRole.autocomplete ?? undefined;
     }
 
     this.completionProvider = new CompletionProvider(

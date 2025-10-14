@@ -1,69 +1,229 @@
-<div align="center">
-
-![Continue logo](media/readme.png)
-
-</div>
-
-<h1 align="center">Continue</h1>
+# Conti - AI Tab Autocomplete Extension
 
 <div align="center">
 
-<a target="_blank" href="https://opensource.org/licenses/Apache-2.0" style="background:none">
-    <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" style="height: 22px;" />
-</a>
-<a target="_blank" href="https://docs.continue.dev" style="background:none">
-    <img src="https://img.shields.io/badge/Continue-docs-%23BE1B55.svg?logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNiAyNCIgZmlsbD0id2hpdGUiPgogIDxwYXRoIGQ9Ik0yMC41Mjg2IDMuMjY4MTFMMTkuMTUxMiA1LjY1Njk0TDIyLjYzMjggMTEuNjg0OUMyMi42NTgyIDExLjczMDYgMjIuNjczNSAxMS43ODY2IDIyLjY3MzUgMTEuODM3NEMyMi42NzM1IDExLjg4ODIgMjIuNjU4MiAxMS45NDQxIDIyLjYzMjggMTEuOTg5OUwxOS4xNTEyIDE4LjAyMjlMMjAuNTI4NiAyMC40MTE3TDI1LjQ3OTEgMTEuODM3NEwyMC41Mjg2IDMuMjYzMDNWMy4yNjgxMVpNMTguNjE3NiA1LjM0NjlMMTkuOTk1IDIuOTU4MDdIMTcuMjQwMkwxNS44NjI4IDUuMzQ2OUgxOC42MjI3SDE4LjYxNzZaTTE1Ljg1NzcgNS45NjY5N0wxOS4wNzUgMTEuNTMyNEgyMS44Mjk4TDE4LjYxNzYgNS45NjY5N0gxNS44NTc3Wk0xOC42MTc2IDE3LjcxNzlMMjEuODI5OCAxMi4xNDc0SDE5LjA3NUwxNS44NTc3IDE3LjcxNzlIMTguNjE3NlpNMTUuODU3NyAxOC4zMzhMMTcuMjM1MSAyMC43MTY3SDE5Ljk4OTlMMTguNjEyNSAxOC4zMzhIMTUuODUyNkgxNS44NTc3Wk02LjUyMDk4IDIxLjMwNjNDNi40NjUwNyAyMS4zMDYzIDYuNDE0MjQgMjEuMjkxIDYuMzY4NSAyMS4yNjU2QzYuMzIyNzYgMjEuMjQwMiA2LjI4MjA5IDIxLjE5OTUgNi4yNTY2OCAyMS4xNTM4TDIuNzcwMDIgMTUuMTIwN0gwLjAxNTI0ODJMNC45NjU3IDIzLjY5SDE0Ljg2MTVMMTMuNDg0MSAyMS4zMDYzSDYuNTI2MDZINi41MjA5OFpNMTQuMDE3OCAyMC45OTYyTDE1LjM5NTIgMjMuMzhMMTYuNzcyNiAyMC45OTExTDE1LjM5NTIgMTguNjAyM0wxNC4wMTc4IDIwLjk5MTFWMjAuOTk2MlpNMTQuODYxNSAxOC4yOTc0SDguNDM3MTJMNy4wNTk3MyAyMC42ODYySDEzLjQ4NDFMMTQuODYxNSAxOC4yOTc0Wk03Ljg5ODM2IDE3Ljk5MjRMNC42ODEwOCAxMi40MjE5TDMuMzAzNjkgMTQuODEwN0w2LjUyMDk4IDIwLjM4MTJMNy44OTgzNiAxNy45OTI0Wk0wLjAxMDE2NTQgMTQuNTAwN0gyLjc2NDk0TDQuMTQyMzIgMTIuMTExOEgxLjM5MjYzTDAuMDEwMTY1NCAxNC41MDA3Wk02LjI0MTQzIDIuNTQxM0M2LjI2Njg1IDIuNDk1NTYgNi4zMDc1MSAyLjQ1NDkgNi4zNTMyNSAyLjQyOTQ4QzYuMzk5IDIuNDA0MDcgNi40NTQ5IDIuMzg4ODIgNi41MDU3MyAyLjM4ODgySDEzLjQ3NEwxNC44NTE0IDBINC45NTA0NUwwIDguNTc0MzVIMi43NTQ3N0w2LjIzMTI3IDIuNTQ2MzhMNi4yNDE0MyAyLjU0MTNaTTQuMTQyMzIgMTEuNTc4MkwyLjc2NDk0IDkuMTg5MzRIMC4wMTAxNjU0TDEuMzg3NTUgMTEuNTc4Mkg0LjE0MjMyWk02LjUxMDgxIDMuMzEzODZMMy4yOTg2MSA4Ljg3OTNMNC42NzU5OSAxMS4yNjgxTDcuODg4MiA1LjcwMjY4TDYuNTEwODEgMy4zMTM4NlpNMTMuNDc5MSAzLjAwMzgySDcuMDQ0NDhMOC40MjE4NyA1LjM5MjY0SDE0Ljg1NjRMMTMuNDc5MSAzLjAwMzgyWk0xNS4zOTUyIDUuMDgyNkwxNi43Njc1IDIuNjk4ODZMMTUuMzk1MiAwLjMxMDAzOEwxNC4wMTc4IDIuNjkzNzhMMTUuMzk1MiA1LjA4MjZaIi8+Cjwvc3ZnPg==" style="height: 22px;" />
-</a>
-<a target="_blank" href="https://changelog.continue.dev" style="background:none">
-    <img src="https://img.shields.io/badge/changelog-%96EFF3" style="height: 22px;" />
-</a>
-<a target="_blank" href="https://discord.gg/vapESyrFmJ" style="background:none">
-    <img src="https://img.shields.io/badge/discord-join-continue.svg?labelColor=191937&color=6F6FF7&logo=discord" style="height: 22px;" />
-</a>
+![Conti Logo](media/readme.png)
 
-<p></p>
-
-<div align="center">
-
-**Ship faster with Continuous AI**
-
-**Build and run custom agents across your IDE, terminal, and CI**
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![VS Code](https://img.shields.io/badge/VS_Code-Marketplace-blue.svg)](https://marketplace.visualstudio.com/items?itemName=Continue.conti)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D20.19.0-brightgreen.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.9%2B-blue.svg)](https://www.typescriptlang.org/)
 
 </div>
 
-Get started in [VS Code](https://marketplace.visualstudio.com/items?itemName=Continue.continue), [JetBrains](https://plugins.jetbrains.com/plugin/22707-continue-extension), or [CLI](https://docs.continue.dev/guides/cli)
+## Overview
 
-## Agent
+**Conti** is a lightweight, high-performance VS Code extension that provides AI-powered tab autocomplete and next edit prediction. It's the streamlined version of the full Continue project, focusing only on the essential autocomplete functionality.
 
-[Agent](https://docs.continue.dev/features/agent/quick-start) to work on development tasks together with AI
+## Features
 
-![agent](docs/images/agent.gif)
+### 🚀 **Lightweight & Fast**
+- Startup time < 500ms
+- Latency < 300ms
+- Memory usage < 50MB
+- Minimal dependencies
 
-## Chat
+### ⚡ **Smart Autocomplete**
+- Real-time code suggestions as you type
+- Support for multiple programming languages
+- Context-aware completions
+- Integration with popular LLM providers
 
-[Chat](https://docs.continue.dev/features/chat/quick-start) to ask general questions and clarify code sections
+### 🔮 **Next Edit Prediction**
+- Predictive edit suggestions
+- Learn from your coding patterns
+- Improve productivity with intelligent recommendations
 
-![chat](docs/images/chat.gif)
+### 🎯 **Simple Configuration**
+- Easy setup with just 4 settings
+- No complex configuration required
+- Works out of the box with popular models
 
-## Edit
+## Installation
 
-[Edit](https://docs.continue.dev/features/edit/quick-start) to modify a code section without leaving your current file
+### VS Code Marketplace
+Coming soon to the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Continue.conti)
 
-![edit](docs/images/edit.gif)
+### Manual Installation
+```bash
+# Clone the repository
+git clone https://github.com/continuedev/conti.git
+cd conti
 
-## Autocomplete
+# Install dependencies
+npm install
 
-[Autocomplete](https://docs.continue.dev/features/autocomplete/quick-start) to receive inline code suggestions as you type
+# Build the extension
+npm run build
 
-![autocomplete](docs/images/autocomplete.gif)
+# Package for VS Code
+npm run build:package
+```
 
-</div>
+## Quick Start
+
+1. Install the extension in VS Code
+2. Set your API key in settings:
+   ```json
+   {
+     "conti.apiKey": "your-api-key-here"
+   }
+   ```
+3. Choose your preferred model (default: gpt-4):
+   ```json
+   {
+     "conti.model": "gpt-4"
+   }
+   ```
+4. Start typing and enjoy AI-powered autocomplete!
+
+## Configuration
+
+Conti provides four simple configuration options:
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `conti.enableTabAutocomplete` | boolean | `true` | Enable tab autocomplete feature |
+| `conti.enableNextEdit` | boolean | `true` | Enable next edit prediction feature |
+| `conti.model` | string | `"gpt-4"` | Default model to use for autocomplete |
+| `conti.apiKey` | string | `""` | API key for the selected model |
+
+### Supported Models
+
+- OpenAI: `gpt-4`, `gpt-3.5-turbo`
+- Anthropic: `claude-3-opus`, `claude-3-sonnet`
+- Local models via Ollama
+
+## Development
+
+### Prerequisites
+
+- Node.js >= 20.19.0
+- npm >= 8.19.0
+- VS Code >= 1.70.0
+- [Just](https://github.com/casey/just) (optional, for convenient build commands)
+
+### Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Start development mode
+npm run dev
+
+# Run tests
+npm test
+
+# Build for production
+npm run build
+
+# Format code
+npm run format
+
+# Lint code
+npm run lint
+```
+
+### Using Just (Recommended)
+
+If you have [Just](https://github.com/casey/just) installed, you can use these convenient commands:
+
+```bash
+# Install all dependencies
+just install
+
+# Build the extension
+just build
+
+# Package as VSIX
+just package-vsix
+
+# Development mode with watch
+just dev
+
+# Run tests
+just test
+
+# Run tests with coverage
+just test-coverage
+
+# Run all quality checks
+just ci
+
+# Format and lint code
+just format
+just lint
+just lint-fix
+
+# Check formatting
+just format-check
+
+# Clean build artifacts
+just clean
+
+# Full development setup
+just setup
+
+# Build and package for release
+just release
+```
+
+### Project Structure
+
+```
+conti/
+├── src/                    # Main extension source
+│   ├── extension.ts       # Extension entry point
+│   ├── autocomplete/       # Autocomplete functionality
+│   ├── config/           # Configuration management
+│   └── utils/            # Utility functions
+├── core/                  # Core autocomplete engine
+├── packages/             # Shared packages
+├── tests/                # Test files
+├── scripts/              # Build and utility scripts
+├── docs/                 # Documentation
+└── extensions/vscode/    # VS Code specific files
+```
+
+## Commands
+
+| Command | Keybinding | Description |
+|---------|------------|-------------|
+| `conti.toggleTabAutocompleteEnabled` | `Ctrl+K Ctrl+A` (Mac: `Cmd+K Cmd+A`) | Toggle autocomplete on/off |
+| `conti.forceAutocomplete` | `Ctrl+Alt+Space` (Mac: `Cmd+Alt+Space`) | Force autocomplete at cursor |
+| `conti.toggleNextEditEnabled` | `Ctrl+K Ctrl+N` | Toggle next edit prediction |
+| `conti.openConfigPage` | - | Open configuration settings |
+
+## Performance
+
+Conti is optimized for performance with the following targets:
+
+- **Startup Time**: < 500ms
+- **Autocomplete Latency**: < 300ms
+- **Memory Usage**: < 50MB
+- **Bundle Size**: < 5MB
 
 ## Contributing
 
-Read the [contributing guide](https://github.com/continuedev/continue/blob/main/CONTRIBUTING.md), and
-join [#contribute on Discord](https://discord.gg/vapESyrFmJ).
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details on how to:
+
+- Report bugs
+- Request features
+- Submit pull requests
+- Set up your development environment
 
 ## License
 
-[Apache 2.0 © 2023-2024 Continue Dev, Inc.](./LICENSE)
+Apache License 2.0 © 2024 Continue Dev, Inc.
+
+## Support
+
+- 📖 [Documentation](https://docs.continue.dev)
+- 🐛 [Issue Tracker](https://github.com/continuedev/conti/issues)
+- 💬 [Discord Community](https://discord.gg/vapESyrFmJ)
+- 📧 [Email Support](mailto:hello@continuedev.io)
+
+---
+
+**Built with ❤️ by the Continue team**

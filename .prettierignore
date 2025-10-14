@@ -1,34 +1,46 @@
-binary/bin
-binary/build
-binary/out
-binary/tmp
-core/.continue-test
-docs/.docusaurus
-docs/**/*.mdx
-extensions/.continue-debug
-extensions/vscode/continue_rc_schema.json
-extensions/vscode/.vscode-test
+# Build outputs
+out/
+build/
+dist/
+binary/
 extensions/vscode/bin
 extensions/vscode/build
 extensions/vscode/out
+gui/dist
+
+# Dependencies
+**/node_modules
+core/vendor
+
+# Test and coverage
+coverage/
+extensions/vscode/.vscode-test
+extensions/vscode/e2e/
+core/.continue-test
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+.conductor
+
+# Documentation
+docs/.docusaurus
+docs/**/*.mdx
+
+# Generated files
+extensions/vscode/continue_rc_schema.json
 extensions/vscode/textmate-syntaxes
 extensions/vscode/gui
-extensions/vscode/e2e/.test-extensions
-extensions/vscode/e2e/test-continue
-extensions/vscode/e2e/_output
-extensions/vscode/e2e/storage
-extensions/vscode/e2e/vsix
-extensions/vscode/models
 extensions/intellij/src/main/resources
-gui/dist
 **/.continueignore
 .continue/rules/mintlify-formatting.md
 CHANGELOG.md
 **/continue_tutorial.py
-**/node_modules
 **/CODEOWNERS
-core/vendor
-coverage
-# e2e
 packages/continue-sdk
-.conductor
+
+# Temporary files
+*.tmp
+*.log
+extensions/.continue-debug

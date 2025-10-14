@@ -46,9 +46,13 @@ import { VsCodeWebviewProtocol } from "../webviewProtocol";
 import { Battery } from "../util/battery";
 import { VsCodeIdeUtils } from "../util/ideUtils";
 import { VsCodeIde } from "../VsCodeIde";
+import { ContiConfigManager } from "../config/ContiConfigManager";
+import { MemoryOptimizer } from "../optimization/MemoryOptimizer";
 
 export class VsCodeExtension {
   private configHandler: ConfigHandler;
+  private contiConfigManager: ContiConfigManager;
+  private memoryOptimizer: MemoryOptimizer;
   private extensionContext: vscode.ExtensionContext;
   private ide: VsCodeIde;
   private ideUtils: VsCodeIdeUtils;
@@ -146,6 +150,12 @@ export class VsCodeExtension {
   constructor(context: vscode.ExtensionContext) {
     this.extensionContext = context;
     this.windowId = uuidv4();
+
+    // Initialize simplified configuration manager
+    this.contiConfigManager = ContiConfigManager.getInstance(this.configHandler);
+
+    // Initialize memory optimizer
+    this.memoryOptimizer = MemoryOptimizer.getInstance();
 
     const getUsingFullFileDiff = async () => {
       const { config } = await this.configHandler.loadConfig();
