@@ -1,132 +1,74 @@
-import { DataLogger } from "../../data/log";
-import { COUNT_COMPLETION_REJECTED_AFTER } from "../../util/parameters";
-import { Telemetry } from "../../util/posthog";
-import { getUriFileExtension } from "../../util/uri";
+// Simplified logging service for autocomplete
+// Replaces complex telemetry and data logging with basic console logging
 
 import { AutocompleteOutcome } from "./types";
 
 export class AutocompleteLoggingService {
   // Key is completionId
   private _abortControllers = new Map<string, AbortController>();
-  private _logRejectionTimeouts = new Map<string, NodeJS.Timeout>();
-  private _outcomes = new Map<string, AutocompleteOutcome>();
-  _lastDisplayedCompletion: { id: string; displayedAt: number } | undefined =
-    undefined;
 
-  public createAbortController(completionId: string): AbortController {
-    const abortController = new AbortController();
-    this._abortControllers.set(completionId, abortController);
-    return abortController;
+  constructor() {}
+
+  createAbortController(completionId: string): AbortController {
+    const controller = new AbortController();
+    this._abortControllers.set(completionId, controller);
+    return controller;
   }
 
-  public deleteAbortController(completionId: string) {
+  deleteAbortController(completionId: string): void {
     this._abortControllers.delete(completionId);
   }
 
-  public cancel() {
-    this._abortControllers.forEach((abortController, id) => {
-      abortController.abort();
+  accept(completionId: string): AutocompleteOutcome | undefined {
+    // Simplified acceptance tracking - just log to console
+    console.log(`[Conti] Autocomplete accepted: ${completionId}`);
+    return undefined;
+  }
+
+  markDisplayed(completionId: string, outcome: AutocompleteOutcome): void {
+    // Simplified display tracking
+    console.log(`[Conti] Autocomplete displayed: ${completionId}`, {
+      model: outcome.modelName,
+      provider: outcome.modelProvider,
+      time: outcome.time,
+      cacheHit: outcome.cacheHit,
     });
+  }
+
+  cancel(): void {
+    // Cancel all ongoing requests
+    for (const controller of this._abortControllers.values()) {
+      controller.abort();
+    }
     this._abortControllers.clear();
+    console.log("[Conti] All autocomplete requests cancelled");
   }
 
-  public accept(completionId: string): AutocompleteOutcome | undefined {
-    if (this._logRejectionTimeouts.has(completionId)) {
-      clearTimeout(this._logRejectionTimeouts.get(completionId));
-      this._logRejectionTimeouts.delete(completionId);
-    }
-
-    if (this._outcomes.has(completionId)) {
-      const outcome = this._outcomes.get(completionId)!;
-      outcome.accepted = true;
-      this.logAutocompleteOutcome(outcome);
-      this._outcomes.delete(completionId);
-      return outcome;
-    }
+  trackPendingCompletion(completionId: string): void {
+    console.log(`[Conti] Pending completion: ${completionId}`);
   }
 
-  public cancelRejectionTimeout(completionId: string) {
-    if (this._logRejectionTimeouts.has(completionId)) {
-      clearTimeout(this._logRejectionTimeouts.get(completionId)!);
-      this._logRejectionTimeouts.delete(completionId);
-    }
-
-    if (this._outcomes.has(completionId)) {
-      this._outcomes.delete(completionId);
-    }
+  handleAbort(completionId: string): void {
+    this._abortControllers.delete(completionId);
+    console.log(`[Conti] Completion aborted: ${completionId}`);
   }
 
-  public markDisplayed(completionId: string, outcome: AutocompleteOutcome) {
-    const logRejectionTimeout = setTimeout(() => {
-      // Wait 10 seconds, then assume it wasn't accepted
-      outcome.accepted = false;
-      this.logAutocompleteOutcome(outcome);
-      this._logRejectionTimeouts.delete(completionId);
-    }, COUNT_COMPLETION_REJECTED_AFTER);
-    this._outcomes.set(completionId, outcome);
-    this._logRejectionTimeouts.set(completionId, logRejectionTimeout);
-
-    // If the previously displayed completion is still waiting for rejection,
-    // and this one is a continuation of that (the outcome.completion is the same modulo prefix)
-    // then we should cancel the rejection timeout
-    const previous = this._lastDisplayedCompletion;
-    const now = Date.now();
-    if (previous && this._logRejectionTimeouts.has(previous.id)) {
-      const previousOutcome = this._outcomes.get(previous.id);
-      const c1 = previousOutcome?.completion.split("\n")[0] ?? "";
-      const c2 = outcome.completion.split("\n")[0];
-      if (
-        previousOutcome &&
-        (c1.endsWith(c2) ||
-          c2.endsWith(c1) ||
-          c1.startsWith(c2) ||
-          c2.startsWith(c1))
-      ) {
-        this.cancelRejectionTimeout(previous.id);
-      } else if (now - previous.displayedAt < 500) {
-        // If a completion isn't shown for more than
-        this.cancelRejectionTimeout(previous.id);
-      }
-    }
-
-    this._lastDisplayedCompletion = {
-      id: completionId,
-      displayedAt: now,
-    };
+  cancelRejectionTimeout(completionId: string): void {
+    // Simplified - just log
+    console.log(`[Conti] Rejection timeout cancelled: ${completionId}`);
   }
 
-  private logAutocompleteOutcome(outcome: AutocompleteOutcome) {
-    void DataLogger.getInstance().logDevData({
-      name: "autocomplete",
-      data: {
-        ...outcome,
-        useFileSuffix: true, // from outdated schema
-      },
-    });
+  // Static methods for singleton pattern
+  private static instance: AutocompleteLoggingService | null = null;
 
-    const { prompt, completion, prefix, suffix, ...restOfOutcome } = outcome;
-    const toLog = {
-      accepted: restOfOutcome.accepted,
-      cacheHit: restOfOutcome.cacheHit,
-      completionId: restOfOutcome.completionId,
-      completionOptions: restOfOutcome.completionOptions,
-      debounceDelay: restOfOutcome.debounceDelay,
-      fileExtension: getUriFileExtension(restOfOutcome.filepath),
-      maxPromptTokens: restOfOutcome.maxPromptTokens,
-      modelName: restOfOutcome.modelName,
-      modelProvider: restOfOutcome.modelProvider,
-      multilineCompletions: restOfOutcome.multilineCompletions,
-      time: restOfOutcome.time,
-      useRecentlyEdited: restOfOutcome.useRecentlyEdited,
-      numLines: restOfOutcome.numLines,
-      profileType: restOfOutcome.profileType,
-    };
+  static getInstance(): AutocompleteLoggingService {
+    if (!AutocompleteLoggingService.instance) {
+      AutocompleteLoggingService.instance = new AutocompleteLoggingService();
+    }
+    return AutocompleteLoggingService.instance;
+  }
 
-    outcome.enabledStaticContextualization
-      ? void Telemetry.capture("autocomplete", {
-          ...toLog,
-          enabledStaticContextualization: true,
-        })
-      : void Telemetry.capture("autocomplete", toLog);
+  static reset(): void {
+    AutocompleteLoggingService.instance = null;
   }
 }

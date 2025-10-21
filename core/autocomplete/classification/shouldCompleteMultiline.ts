@@ -19,6 +19,10 @@ export function shouldCompleteMultiline(helper: HelperVars) {
       return true;
     case "never":
       return false;
+    case true:
+      return true;
+    case false:
+      return false;
     default:
       break;
   }

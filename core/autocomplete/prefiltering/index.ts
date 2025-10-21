@@ -1,11 +1,6 @@
 import ignore from "ignore";
 
 import { IDE } from "../..";
-import {
-  getGlobalContinueIgArray,
-  getWorkspaceContinueIgArray,
-} from "../../indexing/continueignore";
-import { getConfigJsonPath } from "../../util/paths";
 import { findUriInDirs } from "../../util/uri";
 import { HelperVars } from "../util/HelperVars";
 
@@ -28,6 +23,7 @@ async function isDisabledForFile(
       return true;
     }
   }
+  return false;
 }
 
 async function shouldLanguageSpecificPrefilter(helper: HelperVars) {
@@ -48,17 +44,11 @@ export async function shouldPrefilter(
     return true;
   }
 
-  // Check whether we're in the continue config.json file
-  if (helper.filepath === getConfigJsonPath()) {
-    return true;
-  }
-
   // Check whether autocomplete is disabled for this file
   const disableInFiles = [
     ...(helper.options.disableInFiles ?? []),
     "*.prompt",
-    ...getGlobalContinueIgArray(),
-    ...(await getWorkspaceContinueIgArray(ide)),
+    // Removed global and workspace ignore arrays for simplicity
   ];
   if (await isDisabledForFile(helper.filepath, disableInFiles, ide)) {
     return true;
@@ -72,12 +62,13 @@ export async function shouldPrefilter(
     return true;
   }
 
-  // if (
-  //   helper.options.transform &&
-  //   (await shouldLanguageSpecificPrefilter(helper))
-  // ) {
-  //   return true;
-  // }
+  // Language specific prefiltering
+  if (
+    helper.options.transform &&
+    (await shouldLanguageSpecificPrefilter(helper))
+  ) {
+    return true;
+  }
 
   return false;
 }

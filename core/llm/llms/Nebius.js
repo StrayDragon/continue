@@ -1,0 +1,54 @@
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var OpenAI_1 = require("./OpenAI");
+var Nebius = /** @class */ (function (_super) {
+    __extends(Nebius, _super);
+    function Nebius() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Nebius.prototype._convertModelName = function (model) {
+        return Nebius.MODEL_IDS[model] || this.model;
+    };
+    Nebius.providerName = "nebius";
+    Nebius.defaultOptions = {
+        apiBase: "https://api.studio.nebius.ai/v1/",
+        useLegacyCompletionsEndpoint: false,
+    };
+    Nebius.MODEL_IDS = {
+        "deepseek/deepseek_v3": "deepseek-ai/DeepSeek-V3",
+        "deepseek/deepseek-r1": "deepseek-ai/DeepSeek-R1",
+        "qwen2.5-coder-32b": "Qwen/Qwen2.5-Coder-32B-Instruct-fast",
+        "Qwen/QwQ-32B-Preview": "Qwen/QwQ-32B-Preview",
+        "llama3.1-70b-nemotron": "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF-fast",
+        "llama3.1-8b": "meta-llama/Meta-Llama-3.1-70B-Instruct-fast",
+        "llama3.1-70b": "meta-llama/Meta-Llama-3.1-70B-Instruct-fast",
+        "llama3.1-405b": "meta-llama/Meta-Llama-3.1-405B-Instruct",
+        "mistral-nemo": "mistralai/Mistral-Nemo-Instruct-2407-fast",
+        "mistral-8x7b": "mistralai/Mixtral-8x7B-Instruct-v0.1-fast",
+        "mistral-8x22b": "mistralai/Mixtral-8x22B-Instruct-v0.1-fast",
+        "qwen-coder2.5-7b": "Qwen/Qwen2.5-Coder-7B-Instruct-fast",
+        "deepseek-2-lite": "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct-fast",
+        "phi-3-mini": "microsoft/Phi-3-mini-4k-instruct-fast",
+        "phi-3-medium": "microsoft/Phi-3-medium-128k-instruct-fast",
+        "gemma2-2b-it": "google/gemma-2-2b-it-fast",
+        "gemma2-9b-it": "google/gemma-2-9b-it-fast",
+        "olmo-7b": "allenai/OLMo-7B-Instruct-hf",
+    };
+    return Nebius;
+}(OpenAI_1.default));
+exports.default = Nebius;

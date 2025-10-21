@@ -1,0 +1,93 @@
+{
+  "name": "conti",
+  "displayName": "Conti - AI Tab Autocomplete",
+  "description": "Lightweight AI-powered tab autocomplete extension",
+  "version": "1.0.0",
+  "publisher": "Continue",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "AI",
+    "Programming Languages",
+    "Machine Learning",
+    "Snippets"
+  ],
+  "keywords": [
+    "autocomplete",
+    "ai",
+    "copilot",
+    "claude",
+    "tab",
+    "completion",
+    "fim"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Conti",
+      "properties": {
+        "conti.enableTabAutocomplete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable tab autocomplete feature."
+        },
+        "conti.enableNextEdit": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable next edit prediction feature."
+        },
+        "conti.model": {
+          "type": "string",
+          "default": "gpt-4",
+          "description": "Default model to use for autocomplete."
+        },
+        "conti.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for the selected model."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "conti.toggleTabAutocompleteEnabled",
+        "category": "Conti",
+        "title": "Toggle Autocomplete"
+      },
+      {
+        "command": "conti.forceAutocomplete",
+        "title": "Conti: Force Autocomplete"
+      },
+      {
+        "command": "conti.toggleNextEditEnabled",
+        "title": "Conti: Toggle Next Edit"
+      },
+      {
+        "command": "conti.openConfigPage",
+        "category": "Conti",
+        "title": "Settings",
+        "icon": "$(gear)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "conti.toggleTabAutocompleteEnabled",
+        "mac": "cmd+k cmd+a",
+        "key": "ctrl+k ctrl+a"
+      },
+      {
+        "command": "conti.forceAutocomplete",
+        "key": "ctrl+alt+space",
+        "mac": "cmd+alt+space"
+      },
+      {
+        "command": "conti.toggleNextEditEnabled",
+        "key": "ctrl+k ctrl+n"
+      }
+    ]
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ]
+}
