@@ -10,18 +10,13 @@
 default:
     @echo "Conti - 轻量级 AI 自动补全扩展"
     @echo ""
-    @echo "🚀 快速开始:"
-    @echo "  just create-minimal-vsix  - 创建最小化可安装VSIX ⭐"
+    @echo "🚀 核心命令:"
+    @echo "  just package-vsix        - 创建可安装的VSIX ⭐"
     @echo ""
-    @echo "📋 可用命令:"
+    @echo "📋 其他命令:"
     @echo "  just setup               - 初始化项目环境"
     @echo "  just clean               - 清理构建文件"
-    @echo "  just build               - 构建扩展"
     @echo "  just compile             - 编译TypeScript"
-    @echo "  just package             - 打包VSIX"
-    @echo "  just package-vsix        - 创建可安装的VSIX文件"
-    @echo "  just create-minimal-vsix - 创建最小化VSIX（推荐）"
-    @echo "  just dev                 - 开发模式"
     @echo "  just fix                 - 修复构建问题"
     @echo "  just status              - 检查项目状态"
 
@@ -92,63 +87,19 @@ check-errors:
     @cd extensions/vscode && npx tsc --noEmit --skipLibCheck
     @echo "✅ 编译检查完成"
 
-# 构建扩展
-build: clean compile-force
-    @echo "🏗️  构建扩展..."
-    @echo "✅ 构建完成"
-
-# 强制构建（忽略错误）
-build-force: clean compile-force
-    @echo "🚀 强制构建（忽略错误）..."
-    @echo "✅ 强制构建完成"
-
-# 打包VSIX
-package: build
-    @echo "📦 打包 VSIX..."
-    @cd extensions/vscode && npm run package
-    @echo "✅ 打包完成"
-
-# 专门创建可安装的VSIX文件
-package-vsix: clean install build-force
+# 打包VSIX（主要命令）
+package-vsix: clean
     @echo "🚀 创建可安装的 VSIX 文件..."
     @cd extensions/vscode
     @echo "📦 检查必要文件..."
     @test -f package.json || (echo "❌ package.json 不存在" && exit 1)
-    @test -f out/extension.js || (echo "❌ 扩展编译文件不存在，正在强制编译..." && npx tsc --skipLibCheck --noImplicitAny false)
     @echo "📦 开始打包..."
-    @npm run package || echo "⚠️ 打包完成但有警告"
-    @echo ""
-    @echo "🔍 检查生成的 VSIX 文件..."
-    @ls -la *.vsix 2>/dev/null || echo "❌ 未找到 VSIX 文件"
-    @echo ""
-    @echo "✅ VSIX 打包完成！"
-    @echo "📋 安装方法:"
-    @echo "1. VS Code: 扩展 -> 从 VSIX 安装"
-    @echo "2. 命令行: code --install-extension conti.vsix"
+    @./create-minimal-vsix.sh
 
 # =============================================================================
 # 开发任务
 # =============================================================================
 
-# 开发模式（监听文件变化）
-dev:
-    @echo "👀 启动开发模式..."
-    @cd extensions/vscode && npm run watch
-
-# 运行测试
-test:
-    @echo "🧪 运行测试..."
-    @cd extensions/vscode && npm test
-
-# 代码检查
-lint:
-    @echo "🔍 代码检查..."
-    @cd extensions/vscode && npm run lint
-
-# 修复代码格式
-lint-fix:
-    @echo "🔧 修复代码格式..."
-    @cd extensions/vscode && npm run lint:fix
 
 # =============================================================================
 # 修复任务
@@ -254,10 +205,6 @@ count-lines:
     @echo "总文件数:"
     @find . -name "*.ts" -not -path "./node_modules/*" -not -path "./.git/*" | wc -l
 
-# 创建最小化VSIX（绕过编译错误）
-create-minimal-vsix:
-    @echo "🚀 创建最小化 VSIX（绕过编译错误）..."
-    @./create-minimal-vsix.sh
 
 # 查看帮助
 help:
@@ -268,11 +215,7 @@ help:
 # =============================================================================
 
 # 常用命令别名
-b: build
-c: compile
-t: test
-p: package
-d: dev
+p: package-vsix
 f: fix
 s: status
 h: help
